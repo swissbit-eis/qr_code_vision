@@ -20,6 +20,40 @@ void main() {
           "otpauth://totp/max.musterman%40gate.company.test?secret=CNIA7THKN26W4B7RYIOUFKOL4ZVFKWPYUDJGFNLOXHOMCVBP7IRZ%3D%3D%3D%3D&algorithm=SHA256&issuer=company&period=60");
     });
 
+    test('can locate and decode totp qr code with transparency', () {
+      // This QR Code has transparent instead of white pixels
+      final imageBytes =
+          File("./test/qrcode_scan_test_data/otp_qr_code_with_transparency.png")
+              .readAsBytesSync();
+      final qrCode = new QrCode();
+      qrCode.scanImageBytes(imageBytes);
+      expect(qrCode.location, isNotNull);
+      expect(qrCode.content?.text,
+          "otpauth://totp/max.musterman%40gate.company.test?secret=CNIA7THKN26W4B7RYIOUFKOL4ZVFKWPYUDJGFNLOXHOMCVBP7IRZ%3D%3D%3D%3D&algorithm=SHA256&issuer=company&period=60");
+    });
+
+    test(
+        'can locate and decode totp qr code from windows clipboard with transparency',
+        () {
+      // When copying a PNG file with transparency rendered in a browser to the windows clipboard
+      // (right-click -> copy image) the PNG is converted into a BMP.
+      // The BMP has a header (BITMAPINFOHEADER) which, according to the spec, does not support transparency.
+      // However, the alpha value of each pixel is still encoded in the file since
+      // every pixel has 4 bytes with 1 byte per channel which leaves an unused extra byte.
+      // Every PNG decoder that follows the spec, like the dart BMPDecoder, ignores the extra byte.
+      // The result is a completely black image.
+      //
+      // This library should detect this and decode the BMP preserving transparency
+      final imageBytes = File(
+              "./test/qrcode_scan_test_data/otp_qr_code_with_transparency_from_windows_clipboard.bmp")
+          .readAsBytesSync();
+      final qrCode = new QrCode();
+      qrCode.scanImageBytes(imageBytes);
+      expect(qrCode.location, isNotNull);
+      expect(qrCode.content?.text,
+          "otpauth://totp/max.musterman%40gate.company.test?secret=CNIA7THKN26W4B7RYIOUFKOL4ZVFKWPYUDJGFNLOXHOMCVBP7IRZ%3D%3D%3D%3D&algorithm=SHA256&issuer=company&period=60");
+    });
+
     test('can scan perfect qr codes with low error correction level', () {
       // Generate QR codes with random content of increasing length and assert
       // that the scanner can locate and decode them correctly.

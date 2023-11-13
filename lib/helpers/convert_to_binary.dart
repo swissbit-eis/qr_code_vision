@@ -203,8 +203,8 @@ class _GrayScaleMatrix {
 /// and it's alpha channel, if present, is 255.
 BitMatrix convertBlackWhiteImageToBinary(Image image) {
   final out = BitMatrix.createEmpty(image.width, image.height);
-  for (var x = 0; x < image.width; x++) {
-    for (var y = 0; y < image.height; y++) {
+  for (var y = 0; y < image.height; y++) {
+    for (var x = 0; x < image.width; x++) {
       out.set(x, y, _isBlackPixel(image, x, y));
     }
   }
@@ -216,5 +216,9 @@ bool _isBlackPixel(Image image, int x, int y) {
   if (image.hasAlpha && pixel.a != 255) {
     return false;
   }
-  return pixel.a == 255 && pixel.r == 0 && pixel.g == 0 && pixel.b == 0;
+  return pixel.r == 0 && pixel.g == 0 && pixel.b == 0;
+}
+
+class BmpInfoWithAlphaChannel extends BmpDecoder {
+
 }

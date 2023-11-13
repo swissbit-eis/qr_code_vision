@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:image/image.dart';
+import 'package:qr_code_vision/helpers/image_format_repair.dart';
 
 import 'decode/decode.dart';
 import 'decode/decode_data.dart';
@@ -94,14 +95,17 @@ class QrCode {
   /// Scan an encoded image in any format supported by the dart image library
   /// to update QR code and location
   scanImageBytes(Uint8List bytes) {
-    var image = decodeImage(bytes);
+    final image = decodeImage(bytes);
+    scanImage(image);
+    if (location == null && couldBeQRCodeBMPWithHiddenTransparency(bytes)) {
+      scanImage(fixQRCodeBMPWithHiddenTransparency(bytes));
+    }
+  }
+
+  scanImage(Image? image) {
     if (image == null) {
       return;
     }
-    scanImage(image);
-  }
-
-  scanImage(Image image) {
     // First pass: Simple black/white conversion. Only works with "perfect" QR codes.
     // E.g. if it's the original QR code image file or the QR code is captured as a screenshot.
     scanBitMatrix(convertBlackWhiteImageToBinary(image), perfectQrCode: true);
